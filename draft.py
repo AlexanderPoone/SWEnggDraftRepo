@@ -25,6 +25,7 @@ from wordcloud import WordCloud
 # Standard library
 from base64 import b64encode, b64decode
 from json import dumps, loads
+from pprint import pprint
 
 app = Flask(__name__)
 CORS(app)
@@ -106,9 +107,33 @@ def dashboard():
 	res = urlopen(req)
 	resJson = loads(res.read())
 
-	print(resJson)
+	###########################
+	url = 'https://api.github.com/user/repos'
 
-	return render_template('index.html', segment='index', avatar=resJson['avatar_url'], usrname=resJson['login'], name=resJson['name'])
+	req = Request(url)
+
+	tok = request.cookies.get('access_token')
+
+	headers = {
+		'Accept': '*/*',
+		'Content-Type': 'application/json',
+		'Authorization': f"token {tok}"
+	}
+	for h in headers:
+		req.add_header(h, headers[h])
+
+	res = urlopen(req)
+	resJson2 = loads(res.read())
+
+	pprint(resJson2)
+	open_issues = sum([x['open_issues'] for x in resJson2])
+	open_issue_repos = sum([1 for x in resJson2 if x != 0])
+
+	langs = [x['language'] for x in resJson2]
+
+	return render_template('index.html', segment='index', 
+		avatar=resJson['avatar_url'], usrname=resJson['login'], name=resJson['name'],
+		open_issues=open_issues, open_issue_repos=open_issue_repos)
 
 @app.route('/logout', methods = ['GET'])
 def logout():
