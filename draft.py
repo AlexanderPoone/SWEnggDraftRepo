@@ -88,7 +88,7 @@ def login():
 
 @app.route('/dashboard', methods = ['GET'])
 def dashboard():
-	return render_template('.html')
+	return render_template('index.html', segment='index')
 
 @app.route('/logout', methods = ['GET'])
 def logout():
