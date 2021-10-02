@@ -12,23 +12,33 @@
 
 					<li class="sidebar-item {% if 'index' in segment %} active {% endif %}">
 						<a class="sidebar-link" href="/">
-							<i class="align-middle" data-feather="sliders"></i> <span class="align-middle">Dashboard</span>
+							<i class="fad fa-tachometer-alt fa-lg fa-fw"></i> <span class="align-middle">Dashboard</span>
 						</a>
 					</li>
 
 					<li class="sidebar-item {% if 'profile' in segment %} active {% endif %}">
 						<a class="sidebar-link" href="pages-profile.html">
-							<i class="align-middle" data-feather="user"></i> <span class="align-middle">Profile</span>
+							<i class="fad fa-user-friends fa-lg fa-fw"></i> <span class="align-middle">Sprint tools</span>
 						</a>
 					</li>
-
 					<li class="sidebar-item {% if 'settings' in segment %} active {% endif %}">
 						<a class="sidebar-link" href="pages-settings.html">
-							<i class="align-middle" data-feather="settings"></i> <span class="align-middle">Settings</span>
+							<i class="fad fa-scroll fa-lg fa-fw"></i> <span class="align-middle">Release notes generation</span>
+						</a>
+					</li>
+					<li class="sidebar-item {% if 'settings' in segment %} active {% endif %}">
+						<a class="sidebar-link" href="pages-settings.html">
+							<i class="fad fa-notes-medical fa-lg fa-fw"></i> <span class="align-middle">Bug triage</span>
 						</a>
 					</li>
 
-					<li class="sidebar-item {% if 'invoice' in segment %} active {% endif %}">
+					<li class="sidebar-item">
+						<a class="sidebar-link" href="#">
+              				<i class="fad fa-sign-out fa-lg fa-fw"></i> 
+                                <span class="align-middle">Logout</span>
+            			</a>
+					</li>
+					<!-- <li class="sidebar-item {% if 'invoice' in segment %} active {% endif %}">
 						<a class="sidebar-link" href="pages-invoice.html">
 							<i class="align-middle" data-feather="credit-card"></i> <span class="align-middle">Invoice</span>
 						</a>
@@ -48,12 +58,19 @@
 							<li class="sidebar-item"><a class="sidebar-link" href="pages-sign-in.html">Sign In</a></li>
 							<li class="sidebar-item"><a class="sidebar-link" href="pages-sign-up.html">Sign Up</a></li>
 						</ul>
-					</li>
+					</li> -->
 
 					<li class="sidebar-header">
-						Tools & Components
+						Repositories
 					</li>
-					<li class="sidebar-item">
+					{% for repo in repolist %}
+						<li class="sidebar-item {% if 'icons' in segment %} active {% endif %}">
+							<a class="sidebar-link" href="{{repo.name}}">
+	              				<i class="devicon-{{repo.language|lower}}-plain fa-fw" style="font-size: larger; vertical-align: middle;"></i> <span class="align-middle">{{repo.name}}</span>
+	            			</a>
+						</li>
+					{% endfor %}
+					<!-- <li class="sidebar-item">
 						<a data-target="#ui" data-toggle="collapse" class="sidebar-link collapsed">
               				<i class="align-middle" data-feather="briefcase"></i> <span class="align-middle">UI Elements</span>
             			</a>
@@ -108,13 +125,7 @@
 
 					<li class="sidebar-header">
 						Auth
-					</li>                    
-					<li class="sidebar-item">
-						<a class="sidebar-link" href="#">
-              				<i class="align-middle" data-feather="log-out"></i> 
-                                <span class="align-middle">Logout</span>
-            			</a>
-					</li>
+					</li>      -->               
 
 				</ul>
 

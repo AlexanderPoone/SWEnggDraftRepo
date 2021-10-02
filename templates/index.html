@@ -33,11 +33,12 @@
 							<div class="col-sm-6">
 								<div class="card">
 									<div class="card-body">
-										<h5 class="card-title mb-4">Open issues</h5>
+										<h5 class="card-title mb-4"><i class="fad fa-comment-exclamation fa-lg"></i>&nbsp;&nbsp;Open issues</h5>
 										<h1 class="mt-1 mb-3">{{open_issues}}</h1>
+										<h4 style="color: lime;"><i class="fad fa-level-up fa-lg"></i>&nbsp;&nbsp;2 this week</h4>
 										<div class="mb-1">
 											<span class="text-muted">across</span>
-											<span class="text-danger"> <i class="mdi mdi-arrow-bottom-right"></i> {{open_issue_repos}} </span>
+											<span class="text-danger"> <i class="mdi mdi-arrow-bottom-right"></i> {{open_issue_repos}}</span>
 											<span class="text-muted">repositories</span>
 										</div>
 									</div>
@@ -56,11 +57,12 @@
 							<div class="col-sm-6">
 								<div class="card">
 									<div class="card-body">
-										<h5 class="card-title mb-4">Earnings</h5>
-										<h1 class="mt-1 mb-3">$21.300</h1>
+										<h5 class="card-title mb-4"><i class="fad fa-tasks fa-lg"></i>&nbsp;&nbsp;Issues assigned to you</h5>
+										<h1 class="mt-1 mb-3">1</h1>
 										<div class="mb-1">
-											<span class="text-success"> <i class="mdi mdi-arrow-bottom-right"></i> 6.65% </span>
-											<span class="text-muted">Since last week</span>
+											<span class="text-muted">across</span>
+											<span class="text-danger"> <i class="mdi mdi-arrow-bottom-right"></i> {{open_issue_repos}}</span>
+											<span class="text-muted">repositories</span>
 										</div>
 									</div>
 								</div>
@@ -83,7 +85,7 @@
 					<div class="card flex-fill w-100">
 						<div class="card-header">
 
-							<h5 class="card-title mb-0">Recent Movement</h5>
+							<h5 class="card-title mb-0"><i class="fad fa-smoke fa-lg"></i>&nbsp;&nbsp;Issues word cloud<!-- Stacked barchart: Issues Open/Closed --></h5>
 						</div>
 						<div class="card-body py-3">
 							<div class="chart chart-sm">
@@ -99,7 +101,7 @@
 					<div class="card flex-fill w-100">
 						<div class="card-header">
 
-							<h5 class="card-title mb-0">Browser Usage</h5>
+							<h5 class="card-title mb-0"><i class="fad fa-shapes fa-lg fa-fw"></i>&nbsp;&nbsp;Issues Topic</h5>
 						</div>
 						<div class="card-body d-flex">
 							<div class="align-self-center w-100">
@@ -112,15 +114,15 @@
 								<table class="table mb-0">
 									<tbody>
 										<tr>
-											<td>Chrome</td>
+											<td>Documentation</td>
 											<td class="text-right">4306</td>
 										</tr>
 										<tr>
-											<td>Firefox</td>
+											<td>Logic</td>
 											<td class="text-right">3801</td>
 										</tr>
 										<tr>
-											<td>IE</td>
+											<td>Feature request</td>
 											<td class="text-right">1689</td>
 										</tr>
 									</tbody>

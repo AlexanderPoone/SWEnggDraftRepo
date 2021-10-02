@@ -19,6 +19,7 @@ from urllib.request import urlopen, Request
 
 # NLP libraries
 from gensim import corpora, models, similarities, downloader			# Topic Modelling
+import spacy
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 
@@ -36,6 +37,10 @@ https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth
 # @app.route('/login', methods = ['GET'])
 # def login():
 # 	return redirect('https://github.com/login/oauth/authorize?client_id=34ed33a5c053d0c8e014&redirect_uri=https://dord.mynetgear.com:5351/login2&allow_signup=false')
+
+@app.route('/', methods = ['GET'])
+def index():
+	return redirect('login')
 
 @app.route('/login', methods = ['GET'])
 def login():
@@ -108,7 +113,7 @@ def dashboard():
 	resJson = loads(res.read())
 
 	###########################
-	url = 'https://api.github.com/user/repos'
+	url = 'https://api.github.com/user/repos?sort=pushed&per_page=100'
 
 	req = Request(url)
 
@@ -125,6 +130,10 @@ def dashboard():
 	res = urlopen(req)
 	resJson2 = loads(res.read())
 
+	for cnt in range(len(resJson2)):
+		if resJson2[cnt]['language'] is not None:
+			resJson2[cnt]['language'] = resJson2[cnt]['language'].replace('++','plusplus').replace('#','sharp').replace('HTML','html5').split(' ')[0]
+
 	pprint(resJson2)
 	open_issues = sum([x['open_issues'] for x in resJson2])
 	open_issue_repos = sum([1 for x in resJson2 if x != 0])
@@ -133,7 +142,7 @@ def dashboard():
 
 	return render_template('index.html', segment='index', 
 		avatar=resJson['avatar_url'], usrname=resJson['login'], name=resJson['name'],
-		open_issues=open_issues, open_issue_repos=open_issue_repos)
+		open_issues=open_issues, open_issue_repos=open_issue_repos, repolist=resJson2)
 
 @app.route('/logout', methods = ['GET'])
 def logout():
