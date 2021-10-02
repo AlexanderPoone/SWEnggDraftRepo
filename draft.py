@@ -35,7 +35,7 @@ https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth
 '''
 # @app.route('/login', methods = ['GET'])
 # def login():
-# 	return redirect('https://github.com/login/oauth/authorize?client_id=34ed33a5c053d0c8e014&redirect_uri=https://dord.mynetgear.com:5285/login2&allow_signup=false')
+# 	return redirect('https://github.com/login/oauth/authorize?client_id=34ed33a5c053d0c8e014&redirect_uri=https://dord.mynetgear.com:5351/login2&allow_signup=false')
 
 @app.route('/login', methods = ['GET'])
 def login():
@@ -51,7 +51,7 @@ def login():
 	if 'code' not in request.args:
 		query = {
 		'client_id': '34ed33a5c053d0c8e014',
-			'redirect_uri': 'https://dord.mynetgear.com:5285/login',
+			'redirect_uri': 'https://dord.mynetgear.com:5351/login',
 			'allow_signup': False
 		}
 		return redirect(f'https://github.com/login/oauth/authorize?{urlencode(query)}')
@@ -140,7 +140,7 @@ def logout():
 	return
 
 '''
-https://dord.mynetgear.com:5285/issuesToTopic
+https://dord.mynetgear.com:5351/issuesToTopic
 '''
 @app.route('/issuesToTopic', methods = ['GET'])
 def issues_to_topic(repos=['https://github.com/SoftFeta/SWEnggTestRepo']):
@@ -205,4 +205,4 @@ def topicModelling():
 
 
 if __name__ == "__main__":
-	app.run(host='0.0.0.0', port=5285, ssl_context=('_internal/cert.pem', '_internal/privkey.pem'))
+	app.run(host='0.0.0.0', port=5351, ssl_context=('_internal/cert.pem', '_internal/privkey.pem'))
