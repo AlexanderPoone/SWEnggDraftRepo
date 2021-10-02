@@ -2,6 +2,18 @@
 
 Just a sandbox for exploration...
 
+[https://dord.mynetgear.com:5351/](https://dord.mynetgear.com:5351/)
+[https://dord.mynetgear.com:5351/](https://dord.mynetgear.com:5351/)
+[https://dord.mynetgear.com:5351/](https://dord.mynetgear.com:5351/)
+[https://dord.mynetgear.com:5351/](https://dord.mynetgear.com:5351/)
+[https://dord.mynetgear.com:5351/](https://dord.mynetgear.com:5351/)
+[https://dord.mynetgear.com:5351/](https://dord.mynetgear.com:5351/)
+[https://dord.mynetgear.com:5351/](https://dord.mynetgear.com:5351/)
+[https://dord.mynetgear.com:5351/](https://dord.mynetgear.com:5351/)
+
+## Ideas
+<img src="https://user-images.githubusercontent.com/9071916/135711957-134bc056-5b83-4ff7-97ae-7a82ae7547ad.png" alt="drawing" style="width:200px;"/>
+
 ## Requirements
 To install the dependencies, enter the following in the command line:
 ```
