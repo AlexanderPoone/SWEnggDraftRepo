@@ -86,7 +86,7 @@ def login():
 
 		try:
 			res = urlopen(req)
-			print(res.info())
+			# print(res.info())
 		except Exception as e:
 			print(e.read())
 
@@ -165,8 +165,35 @@ def repoDetail(owner, name):
 
 @app.route('/logout', methods = ['GET'])
 def logout():
-	#	TODO: Remove the cookie
-	return
+	#	Delete an app authorization
+	tok = request.cookies.get('access_token')
+	print(tok)
+	url = 'https://api.github.com/applications/34ed33a5c053d0c8e014/grant'
+
+	# Must use Basic Authorization here
+	headers = {
+		'Accept': 'application/json',
+		'Content-Type': 'application/json',
+		'Authorization': f"Basic {b64encode('34ed33a5c053d0c8e014:446a323da8084af5dc13db5beed18bb85b778da2'.encode('utf-8')).decode('utf-8')}"
+	}
+
+	body = {
+		'access_token': tok
+	}
+	data = dumps(body).encode('utf-8')
+
+	req = Request(url, data=data, method='DELETE')
+
+	for h in headers:
+		req.add_header(h, headers[h])
+
+	try:
+		res = urlopen(req)
+	except Exception as e:
+		print(e.read())
+	print(res.read())
+
+	return redirect('login')
 
 '''
 Set up bug severity scale tags for the repository
