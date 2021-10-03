@@ -88,6 +88,7 @@
 							<h5 class="card-title mb-0"><i class="fad fa-smoke fa-lg"></i>&nbsp;&nbsp;Issues word cloud<!-- Stacked barchart: Issues Open/Closed --></h5>
 						</div>
 						<div class="card-body py-3">
+							{{ wordcloud|safe }}
 							<div class="chart chart-sm">
 								<canvas id="chartjs-dashboard-line"></canvas>
 							</div>
