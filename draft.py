@@ -16,7 +16,7 @@ from collections import Counter
 
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
-from pygments.lexers import guess_lexer
+from pygments.lexers import guess_lexer, find_lexer_class_for_filename
 
 import pygraphviz
 '''
@@ -241,9 +241,9 @@ def repoDetail(owner, reponame):
 	code = b64decode(resJson['content'].encode('utf-8')).decode('utf-8')
 	print(code)
 
-	lexer = guess_lexer(code)
+	lexer = find_lexer_class_for_filename(url) #guess_lexer(code)
 	print(lexer)
-	parsedHtml = highlight(code, lexer, HtmlFormatter(linenos='table'))
+	parsedHtml = highlight(code, lexer(), HtmlFormatter(linenos='table'))
 	print(parsedHtml)
 
 	return render_template('repo.html', segment='index', 
@@ -288,7 +288,31 @@ https://docs.github.com/en/rest/reference/git#get-a-tree
 def generateClassUml(owner, reponame):
 	userInfo = getUserInfo()
 	###########################
+	url = f'https://api.github.com/repos/SoftFeta/tempusespatium/contents/app/src/main/java/hk/edu/cuhk/cse/tempusespatium/Round1Activity.java'
 
+	req = Request(url)
+
+	tok = request.cookies.get('access_token')
+
+	headers = {
+		'Accept': '*/*',
+		'Content-Type': 'application/json',
+		'Authorization': f"token {tok}"
+	}
+	for h in headers:
+		req.add_header(h, headers[h])
+
+	res = urlopen(req)
+	resJson = loads(res.read())
+
+	code = b64decode(resJson['content'].encode('utf-8')).decode('utf-8')
+	print(code)
+
+	lexer = find_lexer_class_for_filename(url) #guess_lexer(code)
+	print(lexer)
+	parsedHtml = highlight(code, lexer(), HtmlFormatter(linenos='table'))
+	print(parsedHtml)
+	###########################
 	tok = request.cookies.get('access_token')
 	headers = {
 		'Accept': '*/*',
@@ -298,11 +322,23 @@ def generateClassUml(owner, reponame):
 
 	url = 'https://api.github.com/repos/SoftFeta/tempusespatium/git/trees/master?recursive=1'
 	
-	res = urlopen(url)
-	resJson = loads(res.read())
+	req = Request(url)
+
+	tok = request.cookies.get('access_token')
+
+	headers = {
+		'Accept': '*/*',
+		'Content-Type': 'application/json',
+		'Authorization': f"token {tok}"
+	}
+	for h in headers:
+		req.add_header(h, headers[h])
+
+	res = urlopen(req)
+	resJson2 = loads(res.read())
 
 	# Determine the root directory
-	javaFiles = [x['path'] for x in resJson['tree'] if x['path'].endswith('.java')]
+	javaFiles = [x['path'] for x in resJson2['tree'] if x['path'].endswith('.java')]
 
 	dirnameCounter = Counter([dirname(f) for f in javaFiles])
 
@@ -318,14 +354,14 @@ def generateClassUml(owner, reponame):
 
 	A = pygraphviz.AGraph()
 	for ent in entities:
-		A.add_node(ent, color='goldenrod2', style='filled', shape='box')
+		A.add_node(ent,shape='box') #color='goldenrod2', style='filled', 
 	A.layout()
-	graphString = f'<img src="data:image/jpeg;base64,{b64encode(A.draw(None, "jpeg")).decode("utf-8")}">'
+	graphString = f'<img style="width: 100%;" src="data:image/jpeg;base64,{b64encode(A.draw(None, "jpeg")).decode("utf-8")}">'
 
 	return render_template('repo.html', segment='index', 
 		avatar=userInfo['avatar_url'], usrname=userInfo['login'], name=userInfo['name'],
 		open_issues=None, open_issue_repos=None, repoowner=owner, reponame=reponame,
-		graph = graphString)
+		graph = graphString, parsed=parsedHtml)
 '''
 Set up bug severity scale tags for the repository
 '''
