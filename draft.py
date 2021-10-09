@@ -309,9 +309,14 @@ def generateClassUml(owner, reponame):
 	print(code)
 
 	lexer = find_lexer_class_for_filename(url) #guess_lexer(code)
+	lexer = lexer()
 	print(lexer)
-	parsedHtml = highlight(code, lexer(), HtmlFormatter(linenos='table'))
+	parsedHtml = highlight(code, lexer, HtmlFormatter(linenos='table'))
 	print(parsedHtml)
+
+	# Loop all tokens
+	tokens = lexer.get_tokens(code)
+
 	###########################
 	tok = request.cookies.get('access_token')
 	headers = {
@@ -320,9 +325,9 @@ def generateClassUml(owner, reponame):
 		'Authorization': f"token {tok}"
 	}
 
-	url = 'https://api.github.com/repos/SoftFeta/tempusespatium/git/trees/master?recursive=1'
+	url2 = 'https://api.github.com/repos/SoftFeta/tempusespatium/git/trees/master?recursive=1'
 	
-	req = Request(url)
+	req = Request(url2)
 
 	tok = request.cookies.get('access_token')
 
@@ -352,10 +357,22 @@ def generateClassUml(owner, reponame):
 	
 	print('Files: ', entities)
 
-	A = pygraphviz.AGraph()
+	A = pygraphviz.AGraph(directed=True)
 	for ent in entities:
-		A.add_node(ent,shape='box') #color='goldenrod2', style='filled', 
-	A.layout()
+		A.add_node(ent,shape='box') #color='goldenrod2', style='filled',
+
+	imports = set()
+	currentClass = basename(url).split('.')[0]
+
+	for t in tokens:
+	    if str(t[0]) == 'Token.Name' and t[1] in entities and t[1] != currentClass:
+	    	print(367, t)
+	    	imports.add(t[1])
+
+	for i in imports:
+		A.add_edge(currentClass, i)
+
+	A.layout(prog="fdp")		# ['neato'|'dot'|'twopi'|'circo'|'fdp'|'nop']
 	graphString = f'<img style="width: 100%;" src="data:image/jpeg;base64,{b64encode(A.draw(None, "jpeg")).decode("utf-8")}">'
 
 	return render_template('repo.html', segment='index', 
