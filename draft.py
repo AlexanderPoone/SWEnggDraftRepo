@@ -11,14 +11,16 @@
 ##############################################
 
 from glob import glob
+from os.path import dirname, basename
+from collections import Counter
 
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import guess_lexer
 
+import pygraphviz
 '''
 # for UML (?), download from https://www.lfd.uci.edu/~gohlke/pythonlibs/!
-import pygraphviz
 
 Java Android: how to find imports? (same namespace...)
 Need to parse all class names in a file: new FancyObject(...)
@@ -260,6 +262,9 @@ print(process.memory_info().rss)               # In bytes
 '''
 @app.route('/performanceTestInDocker/<string:owner>/<string:reponame>', methods = ['GET'])
 def performanceTestInDocker(owner, reponame):
+	userInfo = getUserInfo()
+	###########################
+
 	tok = request.cookies.get('access_token')
 	headers = {
 		'Accept': '*/*',
@@ -272,7 +277,7 @@ def performanceTestInDocker(owner, reponame):
 	res = urlopen(url)
 	resJson = loads(res.read())
 
-	print([x['path'] for x in resJson['tree']])
+	print([x['path'] for x in resJson['tree'] if x['path'].endswith('.java')])
 	return '<Loading bar> Check back a couple of minutes.'
 
 
@@ -281,6 +286,9 @@ https://docs.github.com/en/rest/reference/git#get-a-tree
 '''
 @app.route('/generateClassUml/<string:owner>/<string:reponame>', methods = ['GET'])
 def generateClassUml(owner, reponame):
+	userInfo = getUserInfo()
+	###########################
+
 	tok = request.cookies.get('access_token')
 	headers = {
 		'Accept': '*/*',
@@ -293,9 +301,31 @@ def generateClassUml(owner, reponame):
 	res = urlopen(url)
 	resJson = loads(res.read())
 
-	print([x['path'] for x in resJson['tree']])
-	return '<Loading bar> Check back a couple of minutes.'
+	# Determine the root directory
+	javaFiles = [x['path'] for x in resJson['tree'] if x['path'].endswith('.java')]
 
+	dirnameCounter = Counter([dirname(f) for f in javaFiles])
+
+	root = dirnameCounter.most_common(1)[0][0]
+
+	print('Namespace: ', root)
+
+	includedFiles = [f for f in javaFiles if dirname(f) == root]
+	
+	entities = [basename(f).split('.')[0] for f in includedFiles]
+	
+	print('Files: ', entities)
+
+	A = pygraphviz.AGraph()
+	for ent in entities:
+		A.add_node(ent, color='goldenrod2', style='filled', shape='box')
+	A.layout()
+	graphString = f'<img src="data:image/jpeg;base64,{b64encode(A.draw(None, "jpeg")).decode("utf-8")}">'
+
+	return render_template('repo.html', segment='index', 
+		avatar=userInfo['avatar_url'], usrname=userInfo['login'], name=userInfo['name'],
+		open_issues=None, open_issue_repos=None, repoowner=owner, reponame=reponame,
+		graph = graphString)
 '''
 Set up bug severity scale tags for the repository
 '''
