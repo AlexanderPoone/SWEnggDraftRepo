@@ -4,9 +4,9 @@
 #   (Automatic Bug Triage and Assignment by Topic Modelling)
 #   Draft only
 #
-#	Author:          Alex Poon
-#	Date:            Sep 30, 2021
-#	Last update:     Oct 9, 2021
+#	Author:		  Alex Poon
+#	Date:			Sep 30, 2021
+#	Last update:	 Oct 9, 2021
 #
 ##############################################
 
@@ -35,7 +35,7 @@ tokens = lexer.get_tokens(src)
 # TODO: GitHub API call to get all files in the folder (namespace)
 
 for t in tokens:
-    print(str(t[0]))   # 'Token.Name                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               '
+	print(str(t[0]))   # 'Token.Name																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																															   '
 
 https://lornajane.net/posts/2011/uml-diagrams-with-graphviz
 http://www.ffnn.nl/pages/articles/media/uml-diagrams-using-graphviz-dot.php
@@ -80,7 +80,7 @@ from gensim.models.ldamodel import LdaModel
 from gensim.parsing.preprocessing import preprocess_documents
 from gensim.test.utils import common_texts
 
-import matplotlib.pyplot as plt      # Don't know whether this is needed
+import matplotlib.pyplot as plt	  # Don't know whether this is needed
 
 import spacy
 from spacy.lang.en.stop_words import STOP_WORDS
@@ -257,7 +257,7 @@ from os import getpid
 from psutil import Process
 process = psutil.Process(getpid())
 >> pmem(rss=14929920, vms=7827456, num_page_faults=3820, peak_wset=14929920, wset=14929920, peak_paged_pool=132280, paged_pool=132104, peak_nonpaged_pool=13888, nonpaged_pool=13712, pagefile=7827456, peak_pagefile=7827456, private=7827456)
-print(process.memory_info().rss)               # In bytes
+print(process.memory_info().rss)			   # In bytes
 >> 14929920
 '''
 @app.route('/performanceTestInDocker/<string:owner>/<string:reponame>', methods = ['GET'])
@@ -359,20 +359,79 @@ def generateClassUml(owner, reponame):
 
 	A = pygraphviz.AGraph(directed=True)
 	for ent in entities:
-		A.add_node(ent,shape='box') #color='goldenrod2', style='filled',
+		A.add_node(ent,shape='box',label=f'{ent}\n_____________\n_____________\n\n') #color='goldenrod2', style='filled',
 
 	imports = set()
 	currentClass = basename(url).split('.')[0]
 
 	for t in tokens:
-	    if str(t[0]) == 'Token.Name' and t[1] in entities and t[1] != currentClass:
-	    	print(367, t)
-	    	imports.add(t[1])
+		if str(t[0]) == 'Token.Name' and t[1] in entities and t[1] != currentClass:
+
+			print(367, t)
+			imports.add(t[1])
 
 	for i in imports:
-		A.add_edge(currentClass, i)
+		A.add_edge(currentClass, i, arrowhead="vee")
 
-	A.layout(prog="fdp")		# ['neato'|'dot'|'twopi'|'circo'|'fdp'|'nop']
+
+	#######################################################
+	for ent in entities:
+		if ent != currentClass:
+			imports = set()
+
+			url = f'https://api.github.com/repos/SoftFeta/tempusespatium/contents/app/src/main/java/hk/edu/cuhk/cse/tempusespatium/{ent}.java'
+
+			req = Request(url)
+
+			tok = request.cookies.get('access_token')
+
+			headers = {
+				'Accept': '*/*',
+				'Content-Type': 'application/json',
+				'Authorization': f"token {tok}"
+			}
+			for h in headers:
+				req.add_header(h, headers[h])
+
+			res = urlopen(req)
+			resJson = loads(res.read())
+
+			code = b64decode(resJson['content'].encode('utf-8')).decode('utf-8')
+			print(code)
+
+			lexer = find_lexer_class_for_filename(url) #guess_lexer(code)
+			lexer = lexer()
+
+			# Loop all tokens
+			tokens = lexer.get_tokens(code)
+
+			youreInsideImplementBlock = False
+			
+			for t in tokens:
+				print(t)
+				if str(t[0]) == 'Token.Name' and t[1] in entities and t[1] != ent:
+					if youreInsideImplementBlock:
+						A.add_edge(ent, t[1], arrowhead="onormal")
+						if not A.get_node(t[1]).attr['label'].startswith('<<'):
+							A.get_node(t[1]).attr['label'] = f'<<interface>>\n{A.get_node(t[1]).attr["label"]}'
+					else:
+						imports.add(t[1])
+				if t[1] == 'implements':
+					youreInsideImplementBlock = True
+				elif t[1] == '{':
+					youreInsideImplementBlock = False
+
+			for i in imports:
+				A.add_edge(ent, i, arrowhead="vee")
+	#######################################################
+
+
+
+
+
+
+
+	A.layout(prog="dot")		# ['neato'|'dot'|'twopi'|'circo'|'fdp'|'nop']
 	graphString = f'<img style="width: 100%;" src="data:image/jpeg;base64,{b64encode(A.draw(None, "jpeg")).decode("utf-8")}">'
 
 	return render_template('repo.html', segment='index', 
@@ -487,7 +546,7 @@ def topicModelling(doNlp=False):
 
 	# # Find named entities, phrases and concepts
 	# for entity in doc.ents:
-	#     print(entity.text, entity.label_)
+	#	 print(entity.text, entity.label_)
 	'''
 	# Stream a training corpus directly from S3.
 	corpus = corpora.MmCorpus("s3://path/to/corpus")
