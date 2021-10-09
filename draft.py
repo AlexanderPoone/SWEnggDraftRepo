@@ -5,10 +5,12 @@
 #   Draft only
 #
 #	Author:          Alex Poon
-#	Date:           Sep 30, 2021
-#	Last update:    Oct 1, 2021
+#	Date:            Sep 30, 2021
+#	Last update:     Oct 9, 2021
 #
 ##############################################
+
+from glob import glob
 
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
@@ -208,12 +210,12 @@ def dashboard():
 
 
 
-@app.route('/repo/<string:owner>/<string:name>', methods = ['GET'])
-def repoDetail(owner, name):
+@app.route('/repo/<string:owner>/<string:reponame>', methods = ['GET'])
+def repoDetail(owner, reponame):
 	userInfo = getUserInfo()
 	###########################
 
-	# issues_to_topic(owner, name)
+	# issues_to_topic(owner, reponame)
 
 	# POST '/markdown'
 
@@ -244,15 +246,60 @@ def repoDetail(owner, name):
 
 	return render_template('repo.html', segment='index', 
 		avatar=userInfo['avatar_url'], usrname=userInfo['login'], name=userInfo['name'],
-		open_issues=None, open_issue_repos=None, repoowner=owner, reponame=name,
+		open_issues=None, open_issue_repos=None, repoowner=owner, reponame=reponame,
 		parsed = parsedHtml)
+
+
+'''
+from os import getpid
+from psutil import Process
+process = psutil.Process(getpid())
+>> pmem(rss=14929920, vms=7827456, num_page_faults=3820, peak_wset=14929920, wset=14929920, peak_paged_pool=132280, paged_pool=132104, peak_nonpaged_pool=13888, nonpaged_pool=13712, pagefile=7827456, peak_pagefile=7827456, private=7827456)
+print(process.memory_info().rss)               # In bytes
+>> 14929920
+'''
+@app.route('/performanceTestInDocker/<string:owner>/<string:reponame>', methods = ['GET'])
+def performanceTestInDocker(owner, reponame):
+	tok = request.cookies.get('access_token')
+	headers = {
+		'Accept': '*/*',
+		'Content-Type': 'application/json',
+		'Authorization': f"token {tok}"
+	}
+
+	url = 'https://api.github.com/repos/SoftFeta/tempusespatium/git/trees/master?recursive=1'
+	
+	res = urlopen(url)
+	resJson = loads(res.read())
+
+	print([x['path'] for x in resJson['tree']])
+	return '<Loading bar> Check back a couple of minutes.'
+
+
+'''
+https://docs.github.com/en/rest/reference/git#get-a-tree
+'''
+@app.route('/generateClassUml/<string:owner>/<string:reponame>', methods = ['GET'])
+def generateClassUml(owner, reponame):
+	tok = request.cookies.get('access_token')
+	headers = {
+		'Accept': '*/*',
+		'Content-Type': 'application/json',
+		'Authorization': f"token {tok}"
+	}
+
+	url = 'https://api.github.com/repos/SoftFeta/tempusespatium/git/trees/master?recursive=1'
+	
+	res = urlopen(url)
+	resJson = loads(res.read())
+
+	print([x['path'] for x in resJson['tree']])
+	return '<Loading bar> Check back a couple of minutes.'
 
 '''
 Set up bug severity scale tags for the repository
 '''
-@app.route('/issuesToTopic/<string:owner>/<string:name>', methods = ['GET'])
-def issues_to_topic(owner, name):
-
+def initialiseTagSystem(owner, reponame):
 	palette = [('FFCCCC', 'Trivial'),('F6B5B5', 'Trivial'),('EC9F9F', 'Minor'),('E38888', 'Minor'),('D97171', 'Moderate'),
 	('D05B5B', 'Moderate'),('C64444', 'Major'),('BD2D2D', 'Major'),('B31717', 'Critical'),('AA0000', 'Critical')]
 
@@ -266,7 +313,7 @@ def issues_to_topic(owner, name):
 	cnt = 0
 
 	for lbl in palette:
-		url = f"https://api.github.com/repos/{owner}/{name}/labels"
+		url = f"https://api.github.com/repos/{reponame}/{name}/labels"
 
 		body = {
 			'name': f'severity:{cnt+1}',
@@ -288,7 +335,12 @@ def issues_to_topic(owner, name):
 		print(res.read())
 		cnt += 1
 
-	return 'es klappt'
+
+@app.route('/issuesToTopic/<string:owner>/<string:reponame>', methods = ['GET'])
+def issuesToTopic(owner, reponame):
+	initialiseTagSystem(owner, reponame)
+	return 'under construction'
+
 
 '''
 1. Topic model repos in Topics predefined on GitHub one by one.
@@ -297,7 +349,7 @@ def issues_to_topic(owner, name):
 
 Possibly connect to a MongoDB database
 Start button -> AJAX
-https://ieeexplore.ieee.org/document/5298419
+Reference: https://ieeexplore.ieee.org/document/5298419
 '''
 def topicModelling(doNlp=False):
 	repo = 'istio'
