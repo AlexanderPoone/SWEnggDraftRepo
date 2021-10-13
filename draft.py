@@ -19,7 +19,7 @@ from pygments.formatters import HtmlFormatter
 from pygments.lexers import guess_lexer, find_lexer_class_for_filename
 
 import pygraphviz
-from re import findall
+from re import findall, DOTALL
 '''
 # for UML (?), download from https://www.lfd.uci.edu/~gohlke/pythonlibs/!
 
@@ -219,7 +219,7 @@ def repoDetail(owner, reponame):
 	###########################
 	# Get collaborators usernames, names and avatars
 
-	url = f'https://api.github.com/repos/{owner}/{reponame}/collaborators'
+	url = f'https://api.github.com/repos/{owner}/{reponame}/contributors'
 
 	req = Request(url)
 
@@ -271,7 +271,7 @@ def repoDetail(owner, reponame):
 	return render_template('repo.html', segment='index', 
 		avatar=userInfo['avatar_url'], usrname=userInfo['login'], name=userInfo['name'],
 		open_issues=None, open_issue_repos=None, repoowner=owner, reponame=reponame,
-		parsed = parsedHtml)
+		parsed = parsedHtml, contributors = resJson)
 
 
 '''
@@ -355,8 +355,40 @@ def generateClassUml(owner, reponame):
 		# Is there lemon chiffon?
 		A.add_node(ent,shape='box',label=f'{ent}\n_____________\n_____________\n\n') #color='goldenrod2', style='filled',
 
+
 	imports = set()
 	currentClass = basename(url).split('.')[0]
+
+	##############################################################
+	lookarea = findall(r'\{.+?\{', code, flags=DOTALL)
+	print(378, lookarea)
+	if len(lookarea) > 0:
+		lookarea = lookarea[0]
+	else:
+		lookarea = code
+
+	# Members
+	mem0 = [*findall(r'(?<=private )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?=;)', lookarea),*findall(r'(?<=private )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?= \=)', lookarea)]     # =>   - {memberName}: {memberType}
+	mem0 = [f'- {m.split(" ")[1]}: {m.split(" ")[0]}' for m in mem0]
+	mem1 = [*findall(r'(?<=public )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?=;)', lookarea),*findall(r'(?<=public )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?= \=)', lookarea)]      # =>   + {memberName}: {memberType}
+	mem1 =[f'+ {m.split(" ")[1]}: {m.split(" ")[0]}' for m in mem1]
+	mem2 = [*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?=;)', lookarea),*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?= \=)', lookarea)]   # =>   # {memberName}: {memberType}
+	mem2 =[f'# {m.split(" ")[1]}: {m.split(" ")[0]}' for m in mem2]
+	mems = '\n'.join([*mem0, *mem1, *mem2])
+	print(378, mems)
+
+	# Methods
+	met0 = [*findall(r'(?<=private )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code), *findall(r'(?<=private static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code)]     # =>   - {methodName}: {methodType}
+	met0 =set([f'- {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met0])
+	met1 = [*findall(r'(?<=public )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code), *findall(r'(?<=public static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code)]      # =>   + {methodName}: {methodType}
+	met1 =set([f'+ {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met1])
+	met2 = [*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code), *findall(r'(?<=protected static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code)]   # =>   # {methodName}: {methodType}
+	met2 =set([f'# {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met2])
+	mets = '\n'.join([*met0, *met1, *met2])
+	print(378, mets)
+
+	A.get_node(currentClass).attr['label'] = f'{currentClass}\n_____________\n{mems}\n_____________\n{mets}\n'
+	##############################################################
 
 	for t in tokens:
 		if str(t[0]) == 'Token.Name' and t[1] in entities and t[1] != currentClass:
@@ -399,7 +431,7 @@ def generateClassUml(owner, reponame):
 			# TODO: Remove everything that is not outer block
 
 			# Lookarea
-			lookarea = findall(r'\{.+?\{', code)
+			lookarea = findall(r'\{.+?\{', code, flags=DOTALL)
 
 			if len(lookarea) > 0:
 				lookarea = lookarea[0]
@@ -408,7 +440,6 @@ def generateClassUml(owner, reponame):
 
 			# Members
 			mem0 = [*findall(r'(?<=private )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?=;)', lookarea),*findall(r'(?<=private )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?= \=)', lookarea)]     # =>   - {memberName}: {memberType}
-			print(mem0)
 			mem0 = [f'- {m.split(" ")[1]}: {m.split(" ")[0]}' for m in mem0]
 			mem1 = [*findall(r'(?<=public )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?=;)', lookarea),*findall(r'(?<=public )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?= \=)', lookarea)]      # =>   + {memberName}: {memberType}
 			mem1 =[f'+ {m.split(" ")[1]}: {m.split(" ")[0]}' for m in mem1]
@@ -418,12 +449,12 @@ def generateClassUml(owner, reponame):
 			#print(mems)
 
 			# Methods
-			met0 = [*findall(r'(?<=private )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]*?\)', lookarea), *findall(r'(?<=private static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]*?\)', lookarea)]     # =>   - {methodName}: {methodType}
-			met0 =[f'- {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met0]
-			met1 = [*findall(r'(?<=public )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]*?\)', lookarea), *findall(r'(?<=public static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]*?\)', lookarea)]      # =>   + {methodName}: {methodType}
-			met1 =[f'+ {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met1]
-			met2 = [*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]*?\)', lookarea), *findall(r'(?<=protected static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]*?\)', lookarea)]   # =>   # {methodName}: {methodType}
-			met2 =[f'# {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met2]
+			met0 = [*findall(r'(?<=private )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]+?\)', code), *findall(r'(?<=private static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]+?\)', code)]     # =>   - {methodName}: {methodType}
+			met0 =set([f'- {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met0])
+			met1 = [*findall(r'(?<=public )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]+?\)', code), *findall(r'(?<=public static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]+?\)', code)]      # =>   + {methodName}: {methodType}
+			met1 =set([f'+ {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met1])
+			met2 = [*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]+?\)', code), *findall(r'(?<=protected static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]+?\)', code)]   # =>   # {methodName}: {methodType}
+			met2 =set([f'# {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met2])
 			mets = '\n'.join([*met0, *met1, *met2])
 			#print(mets)
 
