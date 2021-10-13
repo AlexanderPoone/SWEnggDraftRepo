@@ -248,6 +248,7 @@ def repoDetail(owner, reponame):
 	# issues_to_topic(owner, reponame)
 
 	url = f'https://api.github.com/repos/SoftFeta/tempusespatium/contents/app/src/main/java/hk/edu/cuhk/cse/tempusespatium/Round1Activity.java'
+	codeFileName = basename(url)
 
 	req = Request(url)
 
@@ -274,7 +275,7 @@ def repoDetail(owner, reponame):
 
 	return render_template('repo.html', segment='index', 
 		avatar=userInfo['avatar_url'], usrname=userInfo['login'], name=userInfo['name'],
-		open_issues=None, open_issue_repos=None, repoowner=owner, reponame=reponame,
+		open_issues=None, open_issue_repos=None, repoowner=owner, reponame=reponame, codeFileName=codeFileName,
 		parsed = parsedHtml, contributors = resJson, contributorRoles = contributorRoles)
 
 
@@ -286,6 +287,7 @@ def generateClassUml(owner, reponame):
 	userInfo = getUserInfo()
 	###########################
 	url = f'https://api.github.com/repos/SoftFeta/tempusespatium/contents/app/src/main/java/hk/edu/cuhk/cse/tempusespatium/Round1Activity.java'
+	codeFileName = basename(url)
 
 	req = Request(url)
 
@@ -502,7 +504,7 @@ def generateClassUml(owner, reponame):
 
 	return render_template('repo.html', segment='index', 
 		avatar=userInfo['avatar_url'], usrname=userInfo['login'], name=userInfo['name'],
-		open_issues=None, open_issue_repos=None, repoowner=owner, reponame=reponame,
+		open_issues=None, open_issue_repos=None, repoowner=owner, reponame=reponame, codeFileName=codeFileName,
 		graph = graphString, parsed=parsedHtml)
 
 
