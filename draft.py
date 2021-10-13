@@ -216,12 +216,9 @@ def dashboard():
 def repoDetail(owner, reponame):
 	userInfo = getUserInfo()
 	###########################
+	# Get collaborators usernames, names and avatars
 
-	# issues_to_topic(owner, reponame)
-
-	# POST '/markdown'
-
-	url = f'https://api.github.com/repos/SoftFeta/tempusespatium/contents/app/src/main/java/hk/edu/cuhk/cse/tempusespatium/Round1Activity.java'
+	url = f'https://api.github.com//repos/{owner}/{reponame}/collaborators'
 
 	req = Request(url)
 
@@ -238,7 +235,31 @@ def repoDetail(owner, reponame):
 	res = urlopen(req)
 	resJson = loads(res.read())
 
-	code = b64decode(resJson['content'].encode('utf-8')).decode('utf-8')
+	print(238, resJson)
+
+	###########################
+	# Get source code
+
+	# issues_to_topic(owner, reponame)
+
+	url = f'https://api.github.com/repos/SoftFeta/tempusespatium/contents/app/src/main/java/hk/edu/cuhk/cse/tempusespatium/Round1Activity.java'
+
+	req = Request(url)
+
+	tok = request.cookies.get('access_token')
+
+	headers = {
+		'Accept': '*/*',
+		'Content-Type': 'application/json',
+		'Authorization': f"token {tok}"
+	}
+	for h in headers:
+		req.add_header(h, headers[h])
+
+	res = urlopen(req)
+	resJson2 = loads(res.read())
+
+	code = b64decode(resJson2['content'].encode('utf-8')).decode('utf-8')
 	print(code)
 
 	lexer = find_lexer_class_for_filename(url) #guess_lexer(code)
@@ -259,7 +280,7 @@ process = psutil.Process(getpid())
 >> pmem(rss=14929920, vms=7827456, num_page_faults=3820, peak_wset=14929920, wset=14929920, peak_paged_pool=132280, paged_pool=132104, peak_nonpaged_pool=13888, nonpaged_pool=13712, pagefile=7827456, peak_pagefile=7827456, private=7827456)
 print(process.memory_info().rss)			   # In bytes
 >> 14929920
-'''
+
 @app.route('/performanceTestInDocker/<string:owner>/<string:reponame>', methods = ['GET'])
 def performanceTestInDocker(owner, reponame):
 	userInfo = getUserInfo()
@@ -279,10 +300,11 @@ def performanceTestInDocker(owner, reponame):
 
 	print([x['path'] for x in resJson['tree'] if x['path'].endswith('.java')])
 	return '<Loading bar> Check back a couple of minutes.'
+'''
 
 
 '''
-https://docs.github.com/en/rest/reference/git#get-a-tree
+Get source code: https://docs.github.com/en/rest/reference/git#get-a-tree
 '''
 @app.route('/generateClassUml/<string:owner>/<string:reponame>', methods = ['GET'])
 def generateClassUml(owner, reponame):
@@ -406,30 +428,30 @@ def generateClassUml(owner, reponame):
 			tokens = lexer.get_tokens(code)
 
 			youreInsideImplementBlock = False
+			youreInsideExtendsBlock = False
 			
 			for t in tokens:
 				print(t)
 				if str(t[0]) == 'Token.Name' and t[1] in entities and t[1] != ent:
 					if youreInsideImplementBlock:
-						A.add_edge(ent, t[1], arrowhead="onormal")
+						A.add_edge(ent, t[1], arrowhead="onormal", style="dashed")
 						if not A.get_node(t[1]).attr['label'].startswith('<<'):
 							A.get_node(t[1]).attr['label'] = f'<<interface>>\n{A.get_node(t[1]).attr["label"]}'
+					elif youreInsideExtendsBlock:
+						A.add_edge(ent, t[1], arrowhead="onormal")
 					else:
 						imports.add(t[1])
 				if t[1] == 'implements':
 					youreInsideImplementBlock = True
+				elif t[1] == 'extends':
+					youreInsideExtendsBlock = True
 				elif t[1] == '{':
+					youreInsideExtendsBlock = False
 					youreInsideImplementBlock = False
 
 			for i in imports:
 				A.add_edge(ent, i, arrowhead="vee")
 	#######################################################
-
-
-
-
-
-
 
 	A.layout(prog="dot")		# ['neato'|'dot'|'twopi'|'circo'|'fdp'|'nop']
 	graphString = f'<img style="width: 100%;" src="data:image/jpeg;base64,{b64encode(A.draw(None, "jpeg")).decode("utf-8")}">'
@@ -438,6 +460,8 @@ def generateClassUml(owner, reponame):
 		avatar=userInfo['avatar_url'], usrname=userInfo['login'], name=userInfo['name'],
 		open_issues=None, open_issue_repos=None, repoowner=owner, reponame=reponame,
 		graph = graphString, parsed=parsedHtml)
+
+
 '''
 Set up bug severity scale tags for the repository
 '''
