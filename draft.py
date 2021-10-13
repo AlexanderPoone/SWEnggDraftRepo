@@ -19,6 +19,7 @@ from pygments.formatters import HtmlFormatter
 from pygments.lexers import guess_lexer, find_lexer_class_for_filename
 
 import pygraphviz
+from re import findall
 '''
 # for UML (?), download from https://www.lfd.uci.edu/~gohlke/pythonlibs/!
 
@@ -218,7 +219,7 @@ def repoDetail(owner, reponame):
 	###########################
 	# Get collaborators usernames, names and avatars
 
-	url = f'https://api.github.com//repos/{owner}/{reponame}/collaborators'
+	url = f'https://api.github.com/repos/{owner}/{reponame}/collaborators'
 
 	req = Request(url)
 
@@ -271,36 +272,6 @@ def repoDetail(owner, reponame):
 		avatar=userInfo['avatar_url'], usrname=userInfo['login'], name=userInfo['name'],
 		open_issues=None, open_issue_repos=None, repoowner=owner, reponame=reponame,
 		parsed = parsedHtml)
-
-
-'''
-from os import getpid
-from psutil import Process
-process = psutil.Process(getpid())
->> pmem(rss=14929920, vms=7827456, num_page_faults=3820, peak_wset=14929920, wset=14929920, peak_paged_pool=132280, paged_pool=132104, peak_nonpaged_pool=13888, nonpaged_pool=13712, pagefile=7827456, peak_pagefile=7827456, private=7827456)
-print(process.memory_info().rss)			   # In bytes
->> 14929920
-
-@app.route('/performanceTestInDocker/<string:owner>/<string:reponame>', methods = ['GET'])
-def performanceTestInDocker(owner, reponame):
-	userInfo = getUserInfo()
-	###########################
-
-	tok = request.cookies.get('access_token')
-	headers = {
-		'Accept': '*/*',
-		'Content-Type': 'application/json',
-		'Authorization': f"token {tok}"
-	}
-
-	url = 'https://api.github.com/repos/SoftFeta/tempusespatium/git/trees/master?recursive=1'
-	
-	res = urlopen(url)
-	resJson = loads(res.read())
-
-	print([x['path'] for x in resJson['tree'] if x['path'].endswith('.java')])
-	return '<Loading bar> Check back a couple of minutes.'
-'''
 
 
 '''
@@ -381,6 +352,7 @@ def generateClassUml(owner, reponame):
 
 	A = pygraphviz.AGraph(directed=True)
 	for ent in entities:
+		# Is there lemon chiffon?
 		A.add_node(ent,shape='box',label=f'{ent}\n_____________\n_____________\n\n') #color='goldenrod2', style='filled',
 
 	imports = set()
@@ -397,6 +369,7 @@ def generateClassUml(owner, reponame):
 
 
 	#######################################################
+
 	for ent in entities:
 		if ent != currentClass:
 			imports = set()
@@ -420,6 +393,42 @@ def generateClassUml(owner, reponame):
 
 			code = b64decode(resJson['content'].encode('utf-8')).decode('utf-8')
 			print(code)
+
+			#############################################
+
+			# TODO: Remove everything that is not outer block
+
+			# Lookarea
+			lookarea = findall(r'\{.+?\{', code)
+
+			if len(lookarea) > 0:
+				lookarea = lookarea[0]
+			else:
+				lookarea = code
+
+			# Members
+			mem0 = [*findall(r'(?<=private )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?=;)', lookarea),*findall(r'(?<=private )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?= \=)', lookarea)]     # =>   - {memberName}: {memberType}
+			print(mem0)
+			mem0 = [f'- {m.split(" ")[1]}: {m.split(" ")[0]}' for m in mem0]
+			mem1 = [*findall(r'(?<=public )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?=;)', lookarea),*findall(r'(?<=public )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?= \=)', lookarea)]      # =>   + {memberName}: {memberType}
+			mem1 =[f'+ {m.split(" ")[1]}: {m.split(" ")[0]}' for m in mem1]
+			mem2 = [*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?=;)', lookarea),*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?= \=)', lookarea)]   # =>   # {memberName}: {memberType}
+			mem2 =[f'# {m.split(" ")[1]}: {m.split(" ")[0]}' for m in mem2]
+			mems = '\n'.join([*mem0, *mem1, *mem2])
+			#print(mems)
+
+			# Methods
+			met0 = [*findall(r'(?<=private )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]*?\)', lookarea), *findall(r'(?<=private static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]*?\)', lookarea)]     # =>   - {methodName}: {methodType}
+			met0 =[f'- {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met0]
+			met1 = [*findall(r'(?<=public )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]*?\)', lookarea), *findall(r'(?<=public static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]*?\)', lookarea)]      # =>   + {methodName}: {methodType}
+			met1 =[f'+ {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met1]
+			met2 = [*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]*?\)', lookarea), *findall(r'(?<=protected static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]*?\)', lookarea)]   # =>   # {methodName}: {methodType}
+			met2 =[f'# {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met2]
+			mets = '\n'.join([*met0, *met1, *met2])
+			#print(mets)
+
+			A.get_node(ent).attr['label'] = f'{ent}\n_____________\n{mems}\n_____________\n{mets}\n'
+			#############################################
 
 			lexer = find_lexer_class_for_filename(url) #guess_lexer(code)
 			lexer = lexer()
