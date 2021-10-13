@@ -1,5 +1,7 @@
 # Software Engineering Project Sandbox
 
+![image](https://user-images.githubusercontent.com/9071916/137142960-7c73792d-1f53-49b4-8465-fed65afa0ca5.png)
+
 Just a sandbox for exploration...
 
 [https://dord.mynetgear.com:5351/](https://dord.mynetgear.com:5351/)
