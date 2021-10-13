@@ -236,6 +236,10 @@ def repoDetail(owner, reponame):
 	res = urlopen(req)
 	resJson = loads(res.read())
 
+	contributorRoles = ['Developer Team']
+	for x in range(len(resJson) - 1):
+		contributorRoles.append('Documentation Team')
+
 	print(238, resJson)
 
 	###########################
@@ -271,7 +275,7 @@ def repoDetail(owner, reponame):
 	return render_template('repo.html', segment='index', 
 		avatar=userInfo['avatar_url'], usrname=userInfo['login'], name=userInfo['name'],
 		open_issues=None, open_issue_repos=None, repoowner=owner, reponame=reponame,
-		parsed = parsedHtml, contributors = resJson)
+		parsed = parsedHtml, contributors = resJson, contributorRoles = contributorRoles)
 
 
 '''

@@ -33,8 +33,8 @@
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title mb-4"><i class="fad fa-users fa-lg"></i>&nbsp;&nbsp;Contributors</h5>
-					{% for contributor in contributors %}
-						<p><img src="{{ contributor['avatar_url'] }}" class="avatar img-fluid rounded mr-1"> <strong>{{ contributor['login'] }}</strong></p>
+					{% for contributor in range(contributors|length) %}
+						<p><img src="{{ contributors[contributor]['avatar_url'] }}" class="avatar img-fluid rounded mr-1"> <strong>{{ contributors[contributor]['login'] }}</strong> <span class="badge rounded-pill {{ 'bg-primary' if contributorRoles[contributor] == 'Developer Team' else 'bg-success' }}">{{ contributorRoles[contributor] }}</span></p>
 					{% endfor %}
 				</div>
 			</div>
