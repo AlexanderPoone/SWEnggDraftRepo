@@ -174,6 +174,33 @@ def getUserInfo():
 
 	return resJson
 
+def getContributors(owner, reponame):
+	url = f'https://api.github.com/repos/{owner}/{reponame}/contributors'
+	print(url)
+
+	req = Request(url)
+
+	tok = request.cookies.get('access_token')
+
+	headers = {
+		'Accept': '*/*',
+		'Content-Type': 'application/json',
+		'Authorization': f"token {tok}"
+	}
+	for h in headers:
+		req.add_header(h, headers[h])
+
+	res = urlopen(req)
+	resJson = loads(res.read())
+
+	contributorRoles = ['Developer Team']
+	for x in range(len(resJson) - 1):
+		contributorRoles.append('Documentation Team')
+
+	print(resJson)
+
+	return resJson, contributorRoles
+
 @app.route('/dashboard', methods = ['GET'])
 def dashboard():
 	userInfo = getUserInfo()
@@ -215,33 +242,14 @@ def dashboard():
 
 @app.route('/repo/<string:owner>/<string:reponame>', methods = ['GET'])
 def repoDetail(owner, reponame):
+	###########################
+	# Get logged in user's info
+
 	userInfo = getUserInfo()
 	###########################
 	# Get collaborators usernames, names and avatars
 
-	url = f'https://api.github.com/repos/{owner}/{reponame}/contributors'
-
-	req = Request(url)
-
-	tok = request.cookies.get('access_token')
-
-	headers = {
-		'Accept': '*/*',
-		'Content-Type': 'application/json',
-		'Authorization': f"token {tok}"
-	}
-	for h in headers:
-		req.add_header(h, headers[h])
-
-	res = urlopen(req)
-	resJson = loads(res.read())
-
-	contributorRoles = ['Developer Team']
-	for x in range(len(resJson) - 1):
-		contributorRoles.append('Documentation Team')
-
-	print(238, resJson)
-
+	contributors, contributorRoles = getContributors(owner, reponame)
 	###########################
 	# Get source code
 
@@ -276,7 +284,7 @@ def repoDetail(owner, reponame):
 	return render_template('repo.html', segment='index', 
 		avatar=userInfo['avatar_url'], usrname=userInfo['login'], name=userInfo['name'],
 		open_issues=None, open_issue_repos=None, repoowner=owner, reponame=reponame, codeFileName=codeFileName,
-		parsed = parsedHtml, contributors = resJson, contributorRoles = contributorRoles)
+		parsed = parsedHtml, contributors = contributors, contributorRoles = contributorRoles)
 
 
 '''
@@ -285,6 +293,10 @@ Get source code: https://docs.github.com/en/rest/reference/git#get-a-tree
 @app.route('/generateClassUml/<string:owner>/<string:reponame>', methods = ['GET'])
 def generateClassUml(owner, reponame):
 	userInfo = getUserInfo()
+	###########################
+	# Get collaborators usernames, names and avatars
+
+	contributors, contributorRoles = getContributors(owner, reponame)
 	###########################
 	url = f'https://api.github.com/repos/SoftFeta/tempusespatium/contents/app/src/main/java/hk/edu/cuhk/cse/tempusespatium/Round1Activity.java'
 	codeFileName = basename(url)
@@ -378,7 +390,8 @@ def generateClassUml(owner, reponame):
 	mem0 = [f'- {m.split(" ")[1]}: {m.split(" ")[0]}' for m in mem0]
 	mem1 = [*findall(r'(?<=public )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?=;)', lookarea),*findall(r'(?<=public )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?= \=)', lookarea)]      # =>   + {memberName}: {memberType}
 	mem1 =[f'+ {m.split(" ")[1]}: {m.split(" ")[0]}' for m in mem1]
-	mem2 = [*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?=;)', lookarea),*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?= \=)', lookarea)]   # =>   # {memberName}: {memberType}
+	mem2 = [*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?=;)', lookarea),*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?= \=)', lookarea),
+	*[lstrip(l) for l in findall(r'^\s*[A-Za-z0-9_]+ [A-Za-z0-9_]+(?=;)', lookarea)],*[lstrip(l) for l in findall(r'^\s*[A-Za-z0-9_]+ [A-Za-z0-9_]+(?= \=)', lookarea)]]   # =>   # {memberName}: {memberType}
 	mem2 =[f'# {m.split(" ")[1]}: {m.split(" ")[0]}' for m in mem2]
 	mems = '\n'.join([*mem0, *mem1, *mem2])
 	print(378, mems)
@@ -388,7 +401,8 @@ def generateClassUml(owner, reponame):
 	met0 =set([f'- {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met0])
 	met1 = [*findall(r'(?<=public )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code), *findall(r'(?<=public static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code)]      # =>   + {methodName}: {methodType}
 	met1 =set([f'+ {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met1])
-	met2 = [*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code), *findall(r'(?<=protected static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code)]   # =>   # {methodName}: {methodType}
+	met2 = [*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code), *findall(r'(?<=protected static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code),
+	*[lstrip(l) for l in findall(r'^\s*[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code)], *[lstrip(l.replace('static ', '')) for l in findall(r'^\s*static [A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code)]]   # =>   # {methodName}: {methodType}
 	met2 =set([f'# {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met2])
 	mets = '\n'.join([*met0, *met1, *met2])
 	print(378, mets)
@@ -449,7 +463,8 @@ def generateClassUml(owner, reponame):
 			mem0 = [f'- {m.split(" ")[1]}: {m.split(" ")[0]}' for m in mem0]
 			mem1 = [*findall(r'(?<=public )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?=;)', lookarea),*findall(r'(?<=public )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?= \=)', lookarea)]      # =>   + {memberName}: {memberType}
 			mem1 =[f'+ {m.split(" ")[1]}: {m.split(" ")[0]}' for m in mem1]
-			mem2 = [*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?=;)', lookarea),*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?= \=)', lookarea)]   # =>   # {memberName}: {memberType}
+			mem2 = [*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?=;)', lookarea),*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+(?= \=)', lookarea),
+			*[lstrip(l) for l in findall(r'^\s*[A-Za-z0-9_]+ [A-Za-z0-9_]+(?=;)', lookarea)],*[lstrip(l) for l in findall(r'^\s*[A-Za-z0-9_]+ [A-Za-z0-9_]+(?= \=)', lookarea)]]   # =>   # {memberName}: {memberType}
 			mem2 =[f'# {m.split(" ")[1]}: {m.split(" ")[0]}' for m in mem2]
 			mems = '\n'.join([*mem0, *mem1, *mem2])
 			#print(mems)
@@ -459,7 +474,8 @@ def generateClassUml(owner, reponame):
 			met0 =set([f'- {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met0])
 			met1 = [*findall(r'(?<=public )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]+?\)', code), *findall(r'(?<=public static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]+?\)', code)]      # =>   + {methodName}: {methodType}
 			met1 =set([f'+ {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met1])
-			met2 = [*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]+?\)', code), *findall(r'(?<=protected static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_, \t\r\n]+?\)', code)]   # =>   # {methodName}: {methodType}
+			met2 = [*findall(r'(?<=protected )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code), *findall(r'(?<=protected static )[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code),
+			*[lstrip(l) for l in findall(r'^\s*[A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code)], *[lstrip(l.replace('static ', '')) for l in findall(r'^\s*static [A-Za-z0-9_]+ [A-Za-z0-9_]+\([A-Za-z0-9_@, \t\r\n]+?\)', code)]]   # =>   # {methodName}: {methodType}			met2 =set([f'# {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met2])
 			met2 =set([f'# {" ".join(m.split(" ")[1:])}: {m.split(" ")[0]}' for m in met2])
 			mets = '\n'.join([*met0, *met1, *met2])
 			#print(mets)
@@ -505,7 +521,7 @@ def generateClassUml(owner, reponame):
 	return render_template('repo.html', segment='index', 
 		avatar=userInfo['avatar_url'], usrname=userInfo['login'], name=userInfo['name'],
 		open_issues=None, open_issue_repos=None, repoowner=owner, reponame=reponame, codeFileName=codeFileName,
-		graph = graphString, parsed=parsedHtml)
+		graph = graphString, parsed=parsedHtml, contributors = contributors, contributorRoles = contributorRoles)
 
 
 '''
